@@ -3,23 +3,23 @@
     border: 0 none transparent;
     padding: 0;
     background: transparent;
-    
-    .nav-nested {
-        margin: 0 0 0 10px;
-        display: none;
-    }
-    & .expanded > & {
-        display: block;
-    }
 
     li {
         border: 1px solid transparent;
         list-style: none;
         margin: 0px;
 
-        a {
+        & > ol {
+            margin: 0 0 0 10px;
+            display: none;
+        }
+        &.expanded > ol {
             display: block;
-            padding: 2px 4px;
+        }
+
+        & > div > a {
+            display: block;
+            padding: 2px 0px;
             
             &:first-child {
                 opacity: .5;

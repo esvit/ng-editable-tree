@@ -47,15 +47,15 @@
             
             
             <ol class="nav nav-nested editable" tree-view-sortable tree-view-sortable="sortCategory($event, $ui)">
-                <li tree-view="child in tree.$children at ol" ng-class="{expanded:child.expanded}">
+                <li tree-view="child in tree.$children at ol" ng-class="{expanded:child.$expanded}">
                     <div>
                         <a href="javascript:;" ng-click="child.$expanded = !child.$expanded" ng-switch on="child.$expanded">
                             <span ng-show="child.$children.length" ng-switch-when="true">&#x25BC;</span>
                             <span ng-show="child.$children.length" ng-switch-default>&#x25B6;</span>
                         </a>
 
-                        <div class="item-content row level-{[$depth]}" ng-class="{'expanded':child.$settings}">
-                            <div class="btn-group col-span-12 btn-group-justified">
+                        <div class="item-content" ng-class="{'expanded':child.$settings}">
+                            <div class="btn-group btn-group-justified">
                                 <a href="javascript:;" class="btn title-item-menu" ng-class="{'btn-primary':child.is_publish}">
                                     {[child.title]}
                                 </a>
@@ -73,7 +73,7 @@
                                         class="glyphicon glyphicon-cog"></span>
                                 </a>
                             </div>
-                            <div class="col-span-12 details" ng-show="child.$settings">
+                            <div class="details" ng-show="child.$settings">
                                 Settings
                             </div>
                         </div>
