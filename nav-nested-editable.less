@@ -1,0 +1,109 @@
+@import 'less/bootstrap/bootstrap.less';
+@import 'nav-nested.less';
+
+.nav-nested.editable {
+    ol {
+        margin: 4px 0 4px -39px;
+        border: 0 none transparent;
+        padding: 0;
+        background: transparent;
+        // .live
+        float: left;
+        width: 45%;
+        margin-right: 5%;
+
+        ol {
+            margin: 0;
+            border: none;
+            margin: 5px 0 -5px 25px;
+        }
+        input {
+            margin: 0;
+            border: 1px solid #ddd;
+            padding: 1px;
+            font: inherit;
+            font-weight: bold;
+            height: 2em;
+        }
+
+        li {
+            border: 1px solid transparent;
+            list-style: none;
+            margin: 0px;
+            padding: 0 8px 4px;
+            background: transparent;
+            width: 490px;
+
+            &.nav-placeholder {
+                background-color: #FFFFEE;
+                border: 1px dashed #FFCC00;
+                margin-left: 40px;
+                width: 450px;
+            }
+        }
+    }
+    .minimized {
+        ol {
+            border: 0 none transparent;
+            li {
+                display: none;
+            }
+        }
+    }
+    .toggle {
+        background: none repeat scroll 0 0 transparent;
+        border: 0 none transparent;
+        color: #AAAAAA;
+        left: 0;
+        position: absolute;
+        top: 7px;
+        width: 2em;
+    }
+    & > div {
+        display: block;
+        padding-left: 30px;
+        position: relative;
+        width: 100%;
+        .item-content {
+            .btn-group {
+                .title-item-menu {
+                    cursor: move;
+                    display: block;
+                    min-width: 304px;
+                    overflow: hidden;
+                    position: relative;
+                    text-align: left;
+                    width: auto;
+
+                    small {
+                        font-size: 70%;
+                        position: absolute;
+                        right: 0px;
+                        top: -2px;
+                    }
+                }
+            }
+            &.expanded {
+                .btn-group {
+                    .btn {
+                        &:first-child {
+                            border-bottom-left-radius: 0;
+                        }
+                        &:last-child {
+                            border-bottom-right-radius: 0;
+                        }
+                    }
+                }
+            }
+            .details {
+                background: none repeat scroll 0 0 #FFFFFF;
+                border: 1px solid #D6D6D6;
+                border-top: none;
+                border-radius: 0px 0px 3px 3px;
+                margin-top: 0px;
+                padding: 5px;
+                width: 100%;
+            }
+        }
+    }
+}

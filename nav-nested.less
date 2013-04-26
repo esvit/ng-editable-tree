@@ -1,0 +1,37 @@
+.nav-nested {
+    margin: 4px 0 4px -6px;
+    border: 0 none transparent;
+    padding: 0;
+    background: transparent;
+    
+    .nav-nested {
+        margin: 0 0 0 10px;
+        display: none;
+    }
+    & .expanded > & {
+        display: block;
+    }
+
+    li {
+        border: 1px solid transparent;
+        list-style: none;
+        margin: 0px;
+
+        a {
+            display: block;
+            padding: 2px 4px;
+            
+            &:first-child {
+                opacity: .5;
+                text-decoration: none;
+                float: left;
+                width: 20px;
+                color: #999;
+                
+                &:hover {
+                    opacity: 1;
+                }
+            }
+        }
+    }
+}

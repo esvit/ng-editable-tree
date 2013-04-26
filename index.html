@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]> <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]> <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width">
+
+        <!--link rel="stylesheet" href="nav-nested.css">
+        <link rel="stylesheet" href="nav-nested-editable.css"-->
+        <link rel="stylesheet/less" type="text/css" href="nav-nested-editable.less" />
+
+        <script src="components/jquery/jquery.min.js"></script>
+        <script src="components/jquery-ui/ui/jquery-ui.custom.js"></script>
+        <script src="components/jquery-ui-touch-punch/jquery.ui.touch-punch.min.js"></script>
+        <script src="components/nestedSortable/jquery.ui.nestedSortable.js"></script>
+        <script src="components/angular/angular.min.js"></script>
+        <script src="ng-editable-tree.js"></script>
+        <script src="components/less.js/dist/less-1.4.0-beta.js"></script>
+    </head>
+    <body ng-app="app" ng-controller="IndexCtrl">
+
+        <div class="row">
+            <div class="col-span-6">
+            
+            
+                <ol class="nav nav-nested">
+                    <li tree-view="child in tree.$children at ol" ng-class="{expanded:child.$expanded, 'active':child.id == activeNode.id}">
+                        <div>
+                            <a href="javascript:;" ng-click="child.$expanded = !child.$expanded" ng-switch on="child.$expanded">
+                                <span ng-show="child.$children.length" ng-switch-when="true">&#x25BC;</span>
+                                <span ng-show="child.$children.length" ng-switch-default>&#x25B6;</span>
+                            </a>
+
+                            <a href="javascript:;" ng-click="activete(child)">
+                                {[child.title]}
+                            </a>
+                        </div>
+                        <ol></ol>
+                    </li>
+                </ol>
+            
+            </div>
+            <div class="col-span-6">
+            
+            
+            <ol class="nav nav-nested editable" tree-view-sortable tree-view-sortable="sortCategory($event, $ui)">
+                <li tree-view="child in tree.$children at ol" ng-class="{expanded:child.expanded}">
+                    <div>
+                        <a href="javascript:;" ng-click="child.$expanded = !child.$expanded" ng-switch on="child.$expanded">
+                            <span ng-show="child.$children.length" ng-switch-when="true">&#x25BC;</span>
+                            <span ng-show="child.$children.length" ng-switch-default>&#x25B6;</span>
+                        </a>
+
+                        <div class="item-content row level-{[$depth]}" ng-class="{'expanded':child.$settings}">
+                            <div class="btn-group col-span-12 btn-group-justified">
+                                <a href="javascript:;" class="btn title-item-menu" ng-class="{'btn-primary':child.is_publish}">
+                                    {[child.title]}
+                                </a>
+                                <!--a class="btn" ng-click="child.is_publish = !child.is_publish; updateItem(child)" ng-class="{'btn-primary active':child.is_publish}">
+                                    <span class="glyphicon glyphicon-eye-open"></span>
+                                </a-->
+                                <a class="btn" ng-click="addChild(child)" ng-class="{'btn-primary':child.is_publish}">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </a>
+                                <a class="btn" ng-class="{'btn-primary':child.is_publish}" href="javascript:;">
+                                    <span class="glyphicon glyphicon-trash"></span>
+                                </a>
+                                <a class="btn" ng-class="{'btn-primary':child.is_publish, 'active': child.$settings}"
+                                   ng-click="showCategorySettings(child)"><span
+                                        class="glyphicon glyphicon-cog"></span>
+                                </a>
+                            </div>
+                            <div class="col-span-12 details" ng-show="child.$settings">
+                                Settings
+                            </div>
+                        </div>
+                    </div>
+                    <ol></ol>
+                </li>
+            </ol>
+            
+            </div>
+        </div>
+        
+        <script>
+        var app = angular.module('app', ['ngEditableTree']).
+            config(function($interpolateProvider){
+                $interpolateProvider.startSymbol('{[').endSymbol(']}');
+            });
+
+        function IndexCtrl($scope, $http, $q, $timeout) {
+            $scope.tree = {
+                $children: [{
+                    id: 1,
+                    title: 'Root node',
+                    $expanded: true,
+                    $children: [
+                        { id: 2, title: 'Node1' },
+                        { id: 3, title: 'Node2' },
+                        {
+                            id: 4,
+                            title: 'Node3',
+                            $children: [
+                                { id:5, title: 'Node1' }
+                            ]
+                        }
+                    ]
+                }]
+            };
+            $scope.activete = function(node) {
+                $scope.activeNode = node;
+            }
+        }
+        </script>
+
+    
+    </body>
+</html>
