@@ -1,6 +1,12 @@
 {
   "name": "ng-editable-tree",
   "version": "0.0.1",
+  "ignore": [
+    "components",
+    "fonts",
+    "less",
+    "css"
+  ],
   "dependencies": {
     "jquery": "~1.9.1",
     "nestedSortable": "https://github.com/mjsarfatti/nestedSortable.git#~1.3.4",
