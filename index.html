@@ -16,7 +16,8 @@
         <script src="components/jquery-ui/ui/jquery-ui.custom.js"></script>
         <script src="components/jquery-ui-touch-punch/jquery.ui.touch-punch.min.js"></script>
         <script src="components/nestedSortable/jquery.ui.nestedSortable.js"></script>
-        <script src="components/angular/angular.min.js"></script>
+        <script src="components/AngularJS/angular.min.js"></script>
+        <script src="components/angular-resource/angular-resource.min.js"></script>
         <script src="ng-editable-tree.js"></script>
         <script src="components/less.js/dist/less-1.4.0-beta.js"></script>
     </head>
@@ -46,7 +47,7 @@
             <div class="col-span-6">
             
             
-            <ol class="nav nav-nested editable" tree-view-sortable tree-view-sortable="sortCategory($event, $ui)">
+            <ol tree-view-sortable="tree" tree-view-move="move($item, $before, $index)" class="nav nav-nested editable">
                 <li tree-view="child in tree.$children at ol" ng-class="{expanded:child.$expanded}">
                     <div>
                         <a href="javascript:;" ng-click="child.$expanded = !child.$expanded" ng-switch on="child.$expanded">
@@ -89,9 +90,13 @@
         var app = angular.module('app', ['ngEditableTree']).
             config(function($interpolateProvider){
                 $interpolateProvider.startSymbol('{[').endSymbol(']}');
-            });
+            })
+        .factory('CategoryService', function(ngNestedResource) {
+            var CategoryService = ngNestedResource('/rest.php/pages/categories/');
+            return CategoryService;
+        })
 
-        function IndexCtrl($scope, $http, $q, $timeout) {
+        function IndexCtrl($scope, $http, $q, $timeout, CategoryService) {
             $scope.tree = {
                 $children: [{
                     id: 1,
@@ -112,6 +117,24 @@
             };
             $scope.activete = function(node) {
                 $scope.activeNode = node;
+            }
+
+            /**
+            * Create new menu elements
+            */
+            $scope.addChild = function (child) {
+                var category = new CategoryService(child);
+
+                category.$insertItem(function(item) {
+                    item.focus = true;
+                    item.showsettings = true;
+                    item.children = [];
+                });
+            };
+
+            $scope.move = function(item, before, index) {
+                var category = new CategoryService(item);
+                category.$moveItem(before, index);
             }
         }
         </script>

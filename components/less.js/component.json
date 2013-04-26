@@ -1,8 +1,0 @@
-{
-  "name": "less.js",
-  "version": "1.4.0-b2",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/cloudhead/less.js.git"
-  }
-}

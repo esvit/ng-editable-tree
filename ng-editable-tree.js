@@ -1,7 +1,9 @@
+'use strict';
+
 /**
  * @url http://jsfiddle.net/EJGHX/
  */
-angular.module('ngEditableTree', [])
+angular.module('ngEditableTree', ['ngResource'])
     .directive('treeView', function () {
 
   return {
@@ -11,7 +13,7 @@ angular.module('ngEditableTree', [])
     terminal: true,
     compile: function (tElement, tAttrs, transclude) {
 
-      var repeatExpr, childExpr, rootExpr, childrenExpr;
+      var repeatExpr, childExpr, rootExpr, childrenExpr, branchExpr;
 
       repeatExpr = tAttrs.treeView.match(/^(.*) in ((?:.*\.)?(.*)) at (.*)$/);
       childExpr = repeatExpr[1];
@@ -123,10 +125,10 @@ angular.module('ngEditableTree', [])
 
           // Cleanup objects which have been removed.
           // Remove DOM elements and destroy scopes to prevent memory leaks.
-          i = cache.length;
+          var i = cache.length;
 
           while (i--) {
-            cached = cache[i];
+            var cached = cache[i];
             if (cached.scope) {
               cached.scope.$destroy();
             }
@@ -143,50 +145,127 @@ angular.module('ngEditableTree', [])
     }
   };
 })
-    .directive('treeViewSortable', ['$parse', function ($parse) {
+.directive('treeViewSortable', ['$parse', function ($parse) {
+    var eventTypes = 'Create Start Sort Change BeforeStop Update Receive Remove Over Out Activate Deactivate'.split(' ');
 
-  'use strict';
-
-  var eventTypes = 'Create Start Sort Change BeforeStop Stop Update Receive Remove Over Out Activate Deactivate'.split(' ');
-
-  return {
+    return {
     restrict: 'A',
     link: function (scope, element, attrs) {
-        var options = {
-            listType: 'ol',
-            items: 'li',
-            doNotClear: true,
-            handle: '.title-item-menu',
-            placeholder: 'nav-placeholder',
-            forcePlaceholderSize: true,
-            maxLevels: 5,
-            toleranceElement: '> div'
-        };
-      var nodeOptions = attrs.treeViewSortable ? $parse(attrs.treeViewSortable)() : {};
-        options = angular.extend(options, nodeOptions);
+            var options = {
+                listType: 'ol',
+                items: 'li',
+                doNotClear: true,
+                handle: '.title-item-menu',
+                placeholder: 'nav-placeholder',
+                forcePlaceholderSize: true,
+                maxLevels: 5,
+                toleranceElement: '> div'
+            };
+            var nodeOptions = attrs.treeViewSortable ? $parse(attrs.treeViewSortable)() : {};
+                options = angular.extend(options, nodeOptions);
+            var tree = $parse(attrs.treeViewSortable)(scope);
 
-      angular.forEach(eventTypes, function (eventType) {
+            // open collapsed element
+            options['sort'] = function (event, ui) {
+                var parents = $(ui.placeholder).parents('li.ng-scope', '.nav-nested');
+                $.each(parents, function(index, element) {
+                    var el = angular.element(element),
+                        scope = el.scope(),
+                        repeatExpr = $(element).attr('tree-view').match(/^(.*) in ((?:.*\.)?(.*)) at (.*)$/);
 
-        var attr = attrs['treeViewSortable' + eventType],
-          callback;
+                    scope[repeatExpr[1]].$expanded = true;
+                    if (!scope.$$phase) {
+                        scope.$apply();
+                    }
+                });
+            };
 
-        if (attr) {
-          callback = $parse(attr);
-          options[eventType.charAt(0).toLowerCase() + eventType.substr(1)] = function (event, ui) {
-            scope.$apply(function () {
+            // sort childrens
+            options['stop'] = function (event, ui) {
+                var root = event.target,
+                    item = ui.item,
+                    parent = item.parent(),
+                    target = (parent[0] === root) ? tree : parent.scope().child,
+                    child = item.scope().child,
+                    index = item.index();
+                target.$children || (target.$children = []);
 
-              callback(scope, {
-                $event: event,
-                $ui: ui
-              });
+                function walk(target, child) {
+                    var children = target.$children, i;
+                    if (children) {
+                        i = children.length;
+                        while (i--) {
+                            if (children[i] === child) {
+                                return children.splice(i, 1);
+                            } else {
+                                walk(children[i], child);
+                            }
+                        }
+                    }
+                }
+                walk(tree, child);
+
+                target.$children.splice(index, 0, child);
+
+                var callback = $parse(attrs.treeViewMove);
+                scope.$apply(function () {
+                    callback(scope, {
+                        $item: child,
+                        $before: (index) ? target.$children[index - 1] : target,
+                        $index: index
+                    });
+                });
+            };
+
+            angular.forEach(eventTypes, function (eventType) {
+
+                var attr = attrs['treeViewSortable' + eventType], callback;
+
+                if (attr) {
+                    callback = $parse(attr);
+                    options[eventType.charAt(0).toLowerCase() + eventType.substr(1)] = function (event, ui) {
+                        scope.$apply(function () {
+
+                            callback(scope, {
+                                $event: event,
+                                $ui: ui
+                            });
+                        });
+                    };
+                }
+
             });
-          };
+
+            element.nestedSortable(options);
         }
+    };
+}])
+.factory('ngNestedResource', function($resource) {
+    function ResourceFactory(url, paramDefaults, actions) {
+        var defaultActions = {
+            update: { method: 'POST' },
+            create: { method: 'PUT', params: { 'insert': true } },
+            move:   { method: 'PUT', params: { 'move'  : true } }
+        };
+        actions = angular.extend(defaultActions, actions);
+        var resource = $resource(url, paramDefaults, actions);
 
-      });
-
-      element.nestedSortable(options);
-
+        resource.prototype.$insertItem = function(cb) {
+            cb = cb || angular.noop;
+            var currentItem = this;
+            return this.$create({ 'id': currentItem.id }, function(item) {
+                item.focus = true;
+                item.showsettings = true;
+                item.children = [];
+                currentItem.$children.unshift(item);
+                cb();
+            });
+        };
+        resource.prototype.$moveItem = function(before, position, cb) {
+            cb = cb || angular.noop;
+            return this.$move({ 'id': this.id, 'insert': position == 0 }, { 'before': before }, cb);
+        };
+        return resource;
     }
-  };
-}]);
+    return ResourceFactory;
+})
