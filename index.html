@@ -136,6 +136,26 @@
                 var category = new CategoryService(item);
                 category.$moveItem(before, index);
             }
+
+            $scope.remove = function (child) {
+                function walk(target) {
+                    var children = target.children,
+                    i;
+                    if (children) {
+                        i = children.length;
+                        while (i--) {
+                            if (children[i] === child) {
+                                return children.splice(i, 1);
+                            } else {
+                                walk(children[i])
+                            }
+                        }
+                    }
+                }
+                $scope.$apply(function() {
+                    walk($scope.menu);
+                });
+            }
         }
         </script>
 
