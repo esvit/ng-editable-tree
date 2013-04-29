@@ -149,34 +149,36 @@ angular.module('ngEditableTree', ['ngResource'])
     var eventTypes = 'Create Start Sort Change BeforeStop Update Receive Remove Over Out Activate Deactivate'.split(' ');
 
     return {
-        restrict: 'A',
-        link: function (scope, element, attrs) {
+        restrict:'A',
+        link:function (scope, element, attrs) {
             var options = {
-                listType: 'ol',
-                items: 'li',
-                doNotClear: true,
-                handle: '.title-item-menu',
-                placeholder: 'nav-placeholder',
-                forcePlaceholderSize: true,
-                maxLevels: 5,
-                toleranceElement: '> div'
+                listType:'ol',
+                items:'li',
+                doNotClear:true,
+                handle:'.title-item-menu',
+                placeholder:'nav-placeholder',
+                forcePlaceholderSize:true,
+                maxLevels:5,
+                toleranceElement:'> div'
             };
-            var nodeOptions = attrs.treeViewSortable ? $parse(attrs.treeViewSortable)() : {};
+            var nodeOptions = attrs.treeViewSortableOptions ? $parse(attrs.treeViewSortableOptions)() : {};
             options = angular.extend(options, nodeOptions);
             var tree = $parse(attrs.treeViewSortable)(scope);
 
+            scope.$watch(attrs.treeViewSortable, function(value) {
+                tree = value
+            });
             // open collapsed element
             options['sort'] = function (event, ui) {
                 var parents = $(ui.placeholder).parents('li.ng-scope', '.nav-nested');
-                $.each(parents, function(index, element) {
+                $.each(parents, function (index, element) {
                     var el = angular.element(element),
-                        scope = el.scope(),
-                        repeatExpr = $(element).attr('tree-view').match(/^(.*) in ((?:.*\.)?(.*)) at (.*)$/);
+                    scope = el.scope(),
+                    repeatExpr = $(element).attr('tree-view').match(/^(.*) in ((?:.*\.)?(.*)) at (.*)$/);
 
-                    scope[repeatExpr[1]].$expanded = true;
-                    if (!scope.$$phase) {
-                        scope.$apply();
-                    }
+                    scope.$apply(function () {
+                        scope[repeatExpr[1]].$expanded = true;
+                    });
                 });
             };
 
@@ -188,10 +190,10 @@ angular.module('ngEditableTree', ['ngResource'])
                     target = (parent[0] === root) ? tree : parent.scope().child,
                     child = item.scope().child,
                     index = item.index();
-                target.$children || (target.$children = []);
+                target.children || (target.children = []);
 
                 function walk(target, child) {
-                    var children = target.$children, i;
+                    var children = target.children, i;
                     if (children) {
                         i = children.length;
                         while (i--) {
@@ -202,17 +204,17 @@ angular.module('ngEditableTree', ['ngResource'])
                             }
                         }
                     }
-                }
+                };
                 walk(tree, child);
 
-                target.$children.splice(index, 0, child);
+                target.children.splice(index, 0, child);
 
                 var callback = $parse(attrs.treeViewMove);
                 scope.$apply(function () {
                     callback(scope, {
-                        $item: child,
-                        $before: (index) ? target.$children[index - 1] : target,
-                        $index: index
+                        $item:child,
+                        $before:(index) ? target.children[index - 1] : target,
+                        $index:index
                     });
                 });
             };
@@ -227,8 +229,8 @@ angular.module('ngEditableTree', ['ngResource'])
                         scope.$apply(function () {
 
                             callback(scope, {
-                                $event: event,
-                                $ui: ui
+                                $event:event,
+                                $ui:ui
                             });
                         });
                     };
@@ -240,47 +242,66 @@ angular.module('ngEditableTree', ['ngResource'])
         }
     };
 }])
-.factory('ngNestedResource', function($resource) {
+    .factory('ngNestedResource', ['$resource', '$q', '$rootScope', function ($resource, $q, $rootScope) {
     function ResourceFactory(url, paramDefaults, actions) {
         var defaultActions = {
-            update: { method: 'POST' },
-            create: { method: 'PUT', params: { 'insert': true } },
-            move:   { method: 'PUT', params: { 'move'  : true } }
+            update:{ method:'POST' },
+            create:{ method:'PUT', params:{ 'insert':true } },
+            move:{ method:'PUT', params:{ 'move':true } }
         };
         actions = angular.extend(defaultActions, actions);
         var resource = $resource(url, paramDefaults, actions);
 
-        resource.prototype.$insertItem = function(cb) {
-            cb = cb || angular.noop;
-            var currentItem = this;
-            return this.$create({ 'id': currentItem.id }, function(item) {
-                item.focus = true;
-                item.showsettings = true;
-                item.children = [];
-                currentItem.$children.unshift(item);
-                cb();
-            });
-        };
-        resource.prototype.$moveItem = function(before, position, cb) {
-            cb = cb || angular.noop;
-            return this.$move({ 'id': this.id, 'insert': position == 0 }, { 'before': before }, cb);
-        };
-        resource.getTree = function(data, cb) {
-            cb = cb || angular.noop;
-            return resource.get(data, function(result) {
-                function walk(item) {
-                    for (var i = 0, max = item.length; i < max; i++) {
-                        item[i] = new resource(item);
-                        if (item[i].$children) {
-                            walk(item[i].$children);
-                        }
-                    }
+        function walk(items) {
+            for (var i = 0, max = items.length; i < max; i++) {
+                if (!items[i].children) {
+                    items[i].children = [];
                 }
-                walk(result.$children);
+                if (!(items[i] instanceof resource)) {
+                    items[i] = new resource(items[i]);
+                }
+                if (items[i].children.length) {
+                    walk(items[i].children);
+                }
+            }
+        };
+        resource.prototype.$insertItem = function (cb) {
+            cb = cb || angular.noop;
+            var currentItem = this,
+                clone = angular.copy(this); // clone object because angular resource update original data
+            return clone.$create({ 'id': currentItem.id }, function (item) {
+                item.children = [];
+                currentItem.$expanded = true;
+                currentItem.children.unshift(item);
+                if (!$rootScope.$$phase) {
+                    $rootScope.$apply();
+                }
+                cb(item);
             });
-            return this.$move({ 'id': this.id, 'insert': position == 0 }, { 'before': before }, cb);
+        };
+        resource.prototype.$moveItem = function (before, position, cb) {
+            cb = cb || angular.noop;
+            var clone = new resource(this);
+            return clone.$move({ 'id': this.id, 'insert':position == 0, 'before': before.id }, function(item) {
+                cb(item);
+            });
+        };
+        resource.getTree = function (data, cb) {
+            cb = cb || angular.noop;
+            if (typeof data == 'function') {
+                cb = data;
+                data = {};
+            }
+            var def = $q.defer();
+            resource.get(data, function(result) {
+                walk(result.children);
+                def.resolve(result);
+                cb(result);
+            });
+            return def.promise;
         };
         return resource;
     }
+
     return ResourceFactory;
-})
+}]);
