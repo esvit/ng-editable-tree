@@ -252,7 +252,8 @@ angular.module('ngEditableTree', ['ngResource'])
         actions = angular.extend(defaultActions, actions);
         var resource = $resource(url, paramDefaults, actions);
 
-        function walk(items) {
+        function walk(items, parent) {
+            parent = parent || null;
             for (var i = 0, max = items.length; i < max; i++) {
                 if (!items[i].children) {
                     items[i].children = [];
@@ -261,7 +262,7 @@ angular.module('ngEditableTree', ['ngResource'])
                     items[i] = new resource(items[i]);
                 }
                 if (items[i].children.length) {
-                    walk(items[i].children);
+                    walk(items[i].children, items[i]);
                 }
             }
         };
@@ -299,6 +300,28 @@ angular.module('ngEditableTree', ['ngResource'])
                 cb(result);
             });
             return def.promise;
+        };
+
+        var findWalk = function(data, iterator, parents) {
+            parents = parents || [];
+            if (angular.isUndefined(data)) {
+                return null;
+            }
+            if (iterator.call(this, data)) {
+                return data;
+            }
+            var res = null;
+            for (var i = 0, max = data.children.length; i < max; i++) {
+                res = findWalk(data.children[i], iterator, parents);
+                if (res) {
+                    parents.push(data.children[i]);
+                    break;
+                }
+            }
+            return res;
+        }
+        resource.find = function (data, iterator, parents) {
+            return findWalk(data, iterator, parents);
         };
         return resource;
     }
