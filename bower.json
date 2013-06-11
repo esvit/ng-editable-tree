@@ -1,17 +1,14 @@
 {
   "name": "ng-editable-tree",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "main": "ng-editable-tree.js",
   "ignore": [
-    "components",
-    "fonts",
-    "less",
-    "css"
+    "examples", "src"
   ],
   "dependencies": {
     "jquery": "~1.9.1",
     "jquery-ui": "~1.10.2",
     "jquery-ui-touch-punch": "latest",
-    "less.js": "~1.4.0-b2",
     "angular": "~1.0.6",
     "angular-resource": "~1.0.6"
   }

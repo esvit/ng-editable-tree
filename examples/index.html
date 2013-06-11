@@ -10,16 +10,14 @@
 
         <!--link rel="stylesheet" href="nav-nested.css">
         <link rel="stylesheet" href="nav-nested-editable.css"-->
-        <link rel="stylesheet/less" type="text/css" href="nav-nested-editable.less" />
+        <link rel="stylesheet" href="css/bootstrap.css" />
+        <link rel="stylesheet" href="../ng-editable-tree.css" />
 
-        <script src="components/jquery/jquery.min.js"></script>
-        <script src="components/jquery-ui/ui/jquery-ui.custom.js"></script>
-        <script src="components/jquery-ui-touch-punch/jquery.ui.touch-punch.min.js"></script>
-        <script src="components/nestedSortable/jquery.ui.nestedSortable.js"></script>
-        <script src="components/AngularJS/angular.min.js"></script>
-        <script src="components/angular-resource/angular-resource.min.js"></script>
-        <script src="ng-editable-tree.js"></script>
-        <script src="components/less.js/dist/less-1.4.0-beta.js"></script>
+        <script src="js/jquery-1.9.1.min.js"></script>
+        <script src="js/angular.min.js"></script>
+        <script src="js/jquery-ui.min.js"></script>
+        <script src="js/angular-resource.min.js"></script>
+        <script src="../ng-editable-tree.js"></script>
     </head>
     <body ng-app="app" ng-controller="IndexCtrl">
 
@@ -36,7 +34,7 @@
                             </a>
 
                             <a href="javascript:;" ng-click="activete(child)">
-                                {[child.title]}
+                                {{child.title}}
                             </a>
                         </div>
                         <ol></ol>
@@ -58,7 +56,7 @@
                         <div class="item-content" ng-class="{'expanded':child.$settings}">
                             <div class="btn-group btn-group-justified">
                                 <a href="javascript:;" class="btn title-item-menu" ng-class="{'btn-primary':child.is_publish}">
-                                    {[child.title]}
+                                    {{child.title}}
                                 </a>
                                 <!--a class="btn" ng-click="child.is_publish = !child.is_publish; updateItem(child)" ng-class="{'btn-primary active':child.is_publish}">
                                     <span class="glyphicon glyphicon-eye-open"></span>
@@ -87,10 +85,7 @@
         </div>
         
         <script>
-        var app = angular.module('app', ['ngEditableTree']).
-            config(function($interpolateProvider){
-                $interpolateProvider.startSymbol('{[').endSymbol(']}');
-            })
+        var app = angular.module('app', ['ngEditableTree'])
         .factory('CategoryService', function(ngNestedResource) {
             var CategoryService = ngNestedResource('/rest.php/pages/categories/');
             return CategoryService;
