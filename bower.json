@@ -6,8 +6,8 @@
     "examples", "src"
   ],
   "dependencies": {
-    "jquery": "~1.9.1",
-    "jquery-ui": "~1.10.2",
+    "jquery": "latest",
+    "jquery-ui": "latest",
     "jquery-ui-touch-punch": "latest",
     "angular": "~1.0.6",
     "angular-resource": "~1.0.6"
