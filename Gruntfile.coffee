@@ -16,6 +16,11 @@ module.exports = (grunt) ->
                     src: './src/styles/ng-editable-tree.css'
                     dest: './ng-editable-tree.css'
                 ]
+            less:
+                files: [
+                    src: 'src/styles/nav-nested.less'
+                    dest: './ng-editable-tree.less'
+                ]
 
         uglify:
             # concat js files before minification
@@ -34,7 +39,7 @@ module.exports = (grunt) ->
         less:
             css:
                 files:
-                    'ng-editable-tree.css': ['src/styles/nav-nested-editable.less']
+                    'ng-editable-tree.css': ['src/styles/nav-nested.less']
 
         cssmin:
             css:
