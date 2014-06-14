@@ -628,30 +628,14 @@ define('ng-editable-tree', [], function () {
                             target = (parent[0] === root) ? tree : parent.scope().child,
                             child = item.scope().child,
                             index = item.index();
-                        target.children || (target.children = []);
 
-                        function walk(target, child) {
-                            var children = target.children, i;
-                            if (children) {
-                                i = children.length;
-                                while (i--) {
-                                    if (children[i] === child) {
-                                        return children.splice(i, 1);
-                                    } else {
-                                        walk(children[i], child);
-                                    }
-                                }
-                            }
-                        }
-                        walk(tree, child);
-
-                        target.children.splice(index, 0, child);
+                        var before = target.moveArray(tree, child, item.index());
 
                         var callback = $parse(attrs.treeViewMove);
                         scope.$apply(function () {
                             callback(scope, {
                                 $item: child,
-                                $before: (index) ? target.children[index - 1] : target,
+                                $before: before,
                                 $index: index
                             });
                         });
@@ -720,6 +704,28 @@ define('ng-editable-tree', [], function () {
                         }
                         cb(item);
                     });
+                };
+
+                resource.prototype.moveArray = function (tree, child, index) {
+                    this[options.nestedField] || (this[options.nestedField] = []);
+                    function walk(target, child) {
+                        var children = target[options.nestedField], i;
+                        if (children) {
+                            i = children.length;
+                            while (i--) {
+                                if (children[i] === child) {
+                                    return children.splice(i, 1);
+                                } else {
+                                    walk(children[i], child);
+                                }
+                            }
+                        }
+                    }
+                    walk(tree, child);
+
+                    this[options.nestedField].splice(index, 0, child);
+
+                    return (index) ? this[options.nestedField][index - 1] : this;
                 };
                 resource.prototype.$moveItem = function (before, position, cb) {
                     cb = cb || angular.noop;
