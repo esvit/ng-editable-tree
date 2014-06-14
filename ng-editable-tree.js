@@ -1,4 +1,774 @@
-"use strict";!function(a){a.widget("mjs.nestedSortable",a.extend({},a.ui.sortable.prototype,{options:{tabSize:20,disableNesting:"mjs-nestedSortable-no-nesting",errorClass:"mjs-nestedSortable-error",doNotClear:!1,listType:"ol",maxLevels:0,protectRoot:!1,rootID:null,rtl:!1,isAllowed:function(){return!0}},_create:function(){if(this.element.data("sortable",this.element.data("nestedSortable")),!this.element.is(this.options.listType))throw new Error("nestedSortable: Please check the listType option is set to your actual list type");return a.ui.sortable.prototype._create.apply(this,arguments)},destroy:function(){return this.element.removeData("nestedSortable").unbind(".nestedSortable"),a.ui.sortable.prototype.destroy.apply(this,arguments)},_mouseDrag:function(b){this.position=this._generatePosition(b),this.positionAbs=this._convertPositionTo("absolute"),this.lastPositionAbs||(this.lastPositionAbs=this.positionAbs);var c=this.options;if(this.options.scroll){var d=!1;this.scrollParent[0]!=document&&"HTML"!=this.scrollParent[0].tagName?(this.overflowOffset.top+this.scrollParent[0].offsetHeight-b.pageY<c.scrollSensitivity?this.scrollParent[0].scrollTop=d=this.scrollParent[0].scrollTop+c.scrollSpeed:b.pageY-this.overflowOffset.top<c.scrollSensitivity&&(this.scrollParent[0].scrollTop=d=this.scrollParent[0].scrollTop-c.scrollSpeed),this.overflowOffset.left+this.scrollParent[0].offsetWidth-b.pageX<c.scrollSensitivity?this.scrollParent[0].scrollLeft=d=this.scrollParent[0].scrollLeft+c.scrollSpeed:b.pageX-this.overflowOffset.left<c.scrollSensitivity&&(this.scrollParent[0].scrollLeft=d=this.scrollParent[0].scrollLeft-c.scrollSpeed)):(b.pageY-a(document).scrollTop()<c.scrollSensitivity?d=a(document).scrollTop(a(document).scrollTop()-c.scrollSpeed):a(window).height()-(b.pageY-a(document).scrollTop())<c.scrollSensitivity&&(d=a(document).scrollTop(a(document).scrollTop()+c.scrollSpeed)),b.pageX-a(document).scrollLeft()<c.scrollSensitivity?d=a(document).scrollLeft(a(document).scrollLeft()-c.scrollSpeed):a(window).width()-(b.pageX-a(document).scrollLeft())<c.scrollSensitivity&&(d=a(document).scrollLeft(a(document).scrollLeft()+c.scrollSpeed))),d!==!1&&a.ui.ddmanager&&!c.dropBehaviour&&a.ui.ddmanager.prepareOffsets(this,b)}this.positionAbs=this._convertPositionTo("absolute");var e=this.placeholder.offset().top;this.options.axis&&"y"==this.options.axis||(this.helper[0].style.left=this.position.left+"px"),this.options.axis&&"x"==this.options.axis||(this.helper[0].style.top=this.position.top+"px");for(var f=this.items.length-1;f>=0;f--){var g=this.items[f],h=g.item[0],i=this._intersectsWithPointer(g);if(i&&h!=this.currentItem[0]&&this.placeholder[1==i?"next":"prev"]()[0]!=h&&!a.contains(this.placeholder[0],h)&&("semi-dynamic"==this.options.type?!a.contains(this.element[0],h):!0)){if(a(h).mouseenter(),this.direction=1==i?"down":"up","pointer"!=this.options.tolerance&&!this._intersectsWithSides(g))break;a(h).mouseleave(),this._rearrange(b,g),this._clearEmpty(h),this._trigger("change",b,this._uiHash());break}}var j=this.placeholder[0].parentNode.parentNode&&a(this.placeholder[0].parentNode.parentNode).closest(".ui-sortable").length?a(this.placeholder[0].parentNode.parentNode):null,k=this._getLevel(this.placeholder),l=this._getChildLevels(this.helper),m=this.placeholder[0].previousSibling?a(this.placeholder[0].previousSibling):null;if(null!=m)for(;"li"!=m[0].nodeName.toLowerCase()||m[0]==this.currentItem[0]||m[0]==this.helper[0];){if(!m[0].previousSibling){m=null;break}m=a(m[0].previousSibling)}var n=this.placeholder[0].nextSibling?a(this.placeholder[0].nextSibling):null;if(null!=n)for(;"li"!=n[0].nodeName.toLowerCase()||n[0]==this.currentItem[0]||n[0]==this.helper[0];){if(!n[0].nextSibling){n=null;break}n=a(n[0].nextSibling)}var o=document.createElement(c.listType);return this.beyondMaxLevels=0,null!=j&&null==n&&(c.rtl&&this.positionAbs.left+this.helper.outerWidth()>j.offset().left+j.outerWidth()||!c.rtl&&this.positionAbs.left<j.offset().left)?(j.after(this.placeholder[0]),this._clearEmpty(j[0]),this._trigger("change",b,this._uiHash())):null!=m&&(c.rtl&&this.positionAbs.left+this.helper.outerWidth()<m.offset().left+m.outerWidth()-c.tabSize||!c.rtl&&this.positionAbs.left>m.offset().left+c.tabSize)?(this._isAllowed(m,k,k+l+1),m.children(c.listType).length||m[0].appendChild(o),e&&e<=m.offset().top?m.children(c.listType).prepend(this.placeholder):m.children(c.listType)[0].appendChild(this.placeholder[0]),this._trigger("change",b,this._uiHash())):this._isAllowed(j,k,k+l),this._contactContainers(b),a.ui.ddmanager&&a.ui.ddmanager.drag(this,b),this._trigger("sort",b,this._uiHash()),this.lastPositionAbs=this.positionAbs,!1},_mouseStop:function(b){this.beyondMaxLevels&&(this.placeholder.removeClass(this.options.errorClass),this.domPosition.prev?a(this.domPosition.prev).after(this.placeholder):a(this.domPosition.parent).prepend(this.placeholder),this._trigger("revert",b,this._uiHash()));for(var c=this.items.length-1;c>=0;c--){var d=this.items[c].item[0];this._clearEmpty(d)}a.ui.sortable.prototype._mouseStop.apply(this,arguments)},serialize:function(b){var c=a.extend({},this.options,b),d=this._getItemsAsjQuery(c&&c.connected),e=[];return a(d).each(function(){var b=(a(c.item||this).attr(c.attribute||"id")||"").match(c.expression||/(.+)[-=_](.+)/),d=(a(c.item||this).parent(c.listType).parent(c.items).attr(c.attribute||"id")||"").match(c.expression||/(.+)[-=_](.+)/);b&&e.push((c.key||b[1])+"["+(c.key&&c.expression?b[1]:b[2])+"]"+"="+(d?c.key&&c.expression?d[1]:d[2]:c.rootID))}),!e.length&&c.key&&e.push(c.key+"="),e.join("&")},toHierarchy:function(b){function c(b){var e=(a(b).attr(d.attribute||"id")||"").match(d.expression||/(.+)[-=_](.+)/);if(e){var f={id:e[2]};return a(b).children(d.listType).children(d.items).length>0&&(f.children=[],a(b).children(d.listType).children(d.items).each(function(){var a=c(this);f.children.push(a)})),f}}var d=a.extend({},this.options,b),e=(d.startDepthCount||0,[]);return a(this.element).children(d.items).each(function(){var a=c(this);e.push(a)}),e},toArray:function(b){function c(b,g,h){var i,j,k=h+1;if(a(b).children(d.listType).children(d.items).length>0&&(g++,a(b).children(d.listType).children(d.items).each(function(){k=c(a(this),g,k)}),g--),i=a(b).attr(d.attribute||"id").match(d.expression||/(.+)[-=_](.+)/),g===e+1)j=d.rootID;else{var l=a(b).parent(d.listType).parent(d.items).attr(d.attribute||"id").match(d.expression||/(.+)[-=_](.+)/);j=l[2]}return i&&f.push({item_id:i[2],parent_id:j,depth:g,left:h,right:k}),h=k+1}var d=a.extend({},this.options,b),e=d.startDepthCount||0,f=[],g=2;return f.push({item_id:d.rootID,parent_id:"none",depth:e,left:"1",right:2*(a(d.items,this.element).length+1)}),a(this.element).children(d.items).each(function(){g=c(this,e+1,g)}),f=f.sort(function(a,b){return a.left-b.left})},_clearEmpty:function(b){var c=a(b).children(this.options.listType);!c.length||c.children().length||this.options.doNotClear||c.remove()},_getLevel:function(a){var b=1;if(this.options.listType)for(var c=a.closest(this.options.listType);c&&c.length>0&&!c.is(".ui-sortable");)b++,c=c.parent().closest(this.options.listType);return b},_getChildLevels:function(b,c){var d=this,e=this.options,f=0;return c=c||0,a(b).children(e.listType).children(e.items).each(function(a,b){f=Math.max(d._getChildLevels(b,c+1),f)}),c?f+1:f},_isAllowed:function(b,c,d){var e=this.options,f=a(this.domPosition.parent).hasClass("ui-sortable")?!0:!1,g=this.placeholder.closest(".ui-sortable").nestedSortable("option","maxLevels");!e.isAllowed(this.currentItem,b)||b&&b.hasClass(e.disableNesting)||e.protectRoot&&(null==b&&!f||f&&c>1)?(this.placeholder.addClass(e.errorClass),this.beyondMaxLevels=d>g&&0!=g?d-g:1):d>g&&0!=g?(this.placeholder.addClass(e.errorClass),this.beyondMaxLevels=d-g):(this.placeholder.removeClass(e.errorClass),this.beyondMaxLevels=0)}})),a.mjs.nestedSortable.prototype.options=a.extend({},a.ui.sortable.prototype.options,a.mjs.nestedSortable.prototype.options)}(jQuery),define("ng-editable-tree",[],function(){angular.module("ngEditableTree",["ngResource"]).directive("treeView",function(){return{restrict:"A",transclude:"element",priority:1e3,terminal:!0,compile:function(a,b,c){var d,e,f,g,h;return d=b.treeView.match(/^(.*) in ((?:.*\.)?(.*)) at (.*)$/),e=d[1],f=d[2],g=d[3],h=d[4],function(a,b){function d(a){for(var b=j.length;b--;)if(j[b].scope[e]===a)return j.splice(b,1)[0]}var i=b[0].parentNode,j=[];a.$watch(f,function(b){var f=[];!function m(a,b,i,k){for(var l,n,o,p,q,r=0,s=a?a.length:0,t=s-1;s>r;++r)l=b.childNodes[r],n=a[r],o=d(n),o&&o.parentScope!==i&&(j.push(o),o=null),o?o.element!==l&&b.insertBefore(o.element,l):c(i.$new(),function(a,c){c[e]=n,o={scope:c,parentScope:i,element:a[0],branch:a.find(h)[0]},b.insertBefore(o.element,l)}),p=o.scope,p.$depth=k,p.$index=r,p.$first=0===r,p.$last=r===t,p.$middle=!(p.$first||p.$last),f.push(o),q=n[g],q&&q.length&&m(q,o.branch,p,k+1)}(b,i,a,0);for(var k=j.length;k--;){var l=j[k];l.scope&&l.scope.$destroy(),l.element&&l.element.parentNode.removeChild(l.element)}j=f},!0)}}}}).directive("treeViewSortable",["$parse",function(a){var b="Create Start Sort Change BeforeStop Update Receive Remove Over Out Activate Deactivate".split(" ");return{restrict:"A",link:function(c,d,e){var f={listType:"ol",items:"li",doNotClear:!0,handle:".title-item-menu",placeholder:"nav-placeholder",forcePlaceholderSize:!0,maxLevels:5,toleranceElement:"> div"},g=e.treeViewSortableOptions?a(e.treeViewSortableOptions)():{};f=angular.extend(f,g);var h=a(e.treeViewSortable)(c);c.$watch(e.treeViewSortable,function(a){h=a}),f.sort=function(a,b){var c=$(b.placeholder).parents("li.ng-scope",".nav-nested");$.each(c,function(a,b){var c=angular.element(b),d=c.scope(),e=$(b).attr("tree-view").match(/^(.*) in ((?:.*\.)?(.*)) at (.*)$/);d.$apply(function(){d[e[1]].$expanded=!0})})},f.stop=function(b,d){function f(a,b){var c,d=a.children;if(d)for(c=d.length;c--;){if(d[c]===b)return d.splice(c,1);f(d[c],b)}}var g=b.target,i=d.item,j=i.parent(),k=j[0]===g?h:j.scope().child,l=i.scope().child,m=i.index();k.children||(k.children=[]),f(h,l),k.children.splice(m,0,l);var n=a(e.treeViewMove);c.$apply(function(){n(c,{$item:l,$before:m?k.children[m-1]:k,$index:m})})},angular.forEach(b,function(b){var d,g=e["treeViewSortable"+b];g&&(d=a(g),f[b.charAt(0).toLowerCase()+b.substr(1)]=function(a,b){c.$apply(function(){d(c,{$event:a,$ui:b})})})}),d.nestedSortable(f)}}}]).factory("ngNestedResource",["$resource","$q","$rootScope",function(a,b,c){function d(d,e,f){function g(a,b){b=b||null;for(var c=0,d=a.length;d>c;c++)a[c].children||(a[c].children=[]),a[c]instanceof i||(a[c]=new i(a[c])),a[c].children.length&&g(a[c].children,a[c])}var h={update:{method:"POST"},create:{method:"PUT",params:{insert:!0}},move:{method:"PUT",params:{move:!0}}};f=angular.extend(h,f);var i=a(d,e,f);i.prototype.$insertItem=function(a){a=a||angular.noop;var b=this,d=angular.copy(this);return d.$create({id:b.id},function(d){d.children=[],b.$expanded=!0,b.children.unshift(d),c.$$phase||c.$apply(),a(d)})},i.prototype.$moveItem=function(a,b,c){c=c||angular.noop;var d=new i(this);return d.$move({id:this.id,insert:0==b,before:a.id},function(a){c(a)})},i.getTree=function(a,c){c=c||angular.noop,"function"==typeof a&&(c=a,a={});var d=b.defer();return i.get(a,function(a){g(a.children),d.resolve(a),c(a)}),d.promise};var j=function(a,b,c){if(c=c||[],angular.isUndefined(a))return null;if(b.call(this,a))return a;for(var d=null,e=0,f=a.children.length;f>e;e++)if(d=j(a.children[e],b,c)){c.push(a.children[e]);break}return d};return i.find=function(a,b,c){return j(a,b,c)},i}return d}])});
 /*
-//@ sourceMappingURL=ng-editable-tree.map
-*/
+ * jQuery UI Nested Sortable
+ * v 1.3.5 / 21 jun 2012
+ * http://mjsarfatti.com/code/nestedSortable
+ *
+ * Depends on:
+ * jquery.ui.sortable.js 1.8+
+ *
+ * Copyright (c) 2010-2012 Manuele J Sarfatti
+ * Licensed under the MIT License
+ * http://www.opensource.org/licenses/mit-license.php
+ */
+(function ($) {
+    'use strict';
+
+    $.widget('mjs.nestedSortable', $.extend({}, $.ui.sortable.prototype, {
+
+        options: {
+            tabSize: 20,
+            disableNesting: 'mjs-nestedSortable-no-nesting',
+            errorClass: 'mjs-nestedSortable-error',
+            doNotClear: false,
+            listType: 'ol',
+            maxLevels: 0,
+            protectRoot: false,
+            rootID: null,
+            rtl: false,
+            isAllowed: function (item, parent) {
+                return true;
+            }
+        },
+
+        _create: function () {
+            this.element.data('sortable', this.element.data('nestedSortable'));
+
+            if (!this.element.is(this.options.listType)) {
+                throw new Error('nestedSortable: Please check the listType option is set to your actual list type');
+            }
+            return $.ui.sortable.prototype._create.apply(this, arguments);
+        },
+
+        destroy: function () {
+            this.element
+                .removeData('nestedSortable')
+                .unbind('.nestedSortable');
+            return $.ui.sortable.prototype.destroy.apply(this, arguments);
+        },
+
+        _mouseDrag: function (event) {
+
+            //Compute the helpers position
+            this.position = this._generatePosition(event);
+            this.positionAbs = this._convertPositionTo("absolute");
+
+            if (!this.lastPositionAbs) {
+                this.lastPositionAbs = this.positionAbs;
+            }
+
+            var o = this.options;
+
+            //Do scrolling
+            if (this.options.scroll) {
+                var scrolled = false;
+                if (this.scrollParent[0] != document && this.scrollParent[0].tagName != 'HTML') {
+
+                    if ((this.overflowOffset.top + this.scrollParent[0].offsetHeight) - event.pageY < o.scrollSensitivity)
+                        this.scrollParent[0].scrollTop = scrolled = this.scrollParent[0].scrollTop + o.scrollSpeed;
+                    else if (event.pageY - this.overflowOffset.top < o.scrollSensitivity)
+                        this.scrollParent[0].scrollTop = scrolled = this.scrollParent[0].scrollTop - o.scrollSpeed;
+
+                    if ((this.overflowOffset.left + this.scrollParent[0].offsetWidth) - event.pageX < o.scrollSensitivity)
+                        this.scrollParent[0].scrollLeft = scrolled = this.scrollParent[0].scrollLeft + o.scrollSpeed;
+                    else if (event.pageX - this.overflowOffset.left < o.scrollSensitivity)
+                        this.scrollParent[0].scrollLeft = scrolled = this.scrollParent[0].scrollLeft - o.scrollSpeed;
+
+                } else {
+
+                    if (event.pageY - $(document).scrollTop() < o.scrollSensitivity)
+                        scrolled = $(document).scrollTop($(document).scrollTop() - o.scrollSpeed);
+                    else if ($(window).height() - (event.pageY - $(document).scrollTop()) < o.scrollSensitivity)
+                        scrolled = $(document).scrollTop($(document).scrollTop() + o.scrollSpeed);
+
+                    if (event.pageX - $(document).scrollLeft() < o.scrollSensitivity)
+                        scrolled = $(document).scrollLeft($(document).scrollLeft() - o.scrollSpeed);
+                    else if ($(window).width() - (event.pageX - $(document).scrollLeft()) < o.scrollSensitivity)
+                        scrolled = $(document).scrollLeft($(document).scrollLeft() + o.scrollSpeed);
+
+                }
+
+                if (scrolled !== false && $.ui.ddmanager && !o.dropBehaviour)
+                    $.ui.ddmanager.prepareOffsets(this, event);
+            }
+
+            //Regenerate the absolute position used for position checks
+            this.positionAbs = this._convertPositionTo("absolute");
+
+            // Find the top offset before rearrangement,
+            var previousTopOffset = this.placeholder.offset().top;
+
+            //Set the helper position
+            if (!this.options.axis || this.options.axis != "y") {
+                this.helper[0].style.left = this.position.left + 'px';
+            }
+            if (!this.options.axis || this.options.axis != "x") {
+                this.helper[0].style.top = this.position.top + 'px';
+            }
+
+            //Rearrange
+            for (var i = this.items.length - 1; i >= 0; i--) {
+
+                //Cache variables and intersection, continue if no intersection
+                var item = this.items[i], itemElement = item.item[0], intersection = this._intersectsWithPointer(item);
+                if (!intersection) continue;
+
+                if (itemElement != this.currentItem[0] && //cannot intersect with itself
+                    this.placeholder[intersection == 1 ? "next" : "prev"]()[0] != itemElement && //no useless actions that have been done before
+                    !$.contains(this.placeholder[0], itemElement) && //no action if the item moved is the parent of the item checked
+                    (this.options.type == 'semi-dynamic' ? !$.contains(this.element[0], itemElement) : true)
+                //&& itemElement.parentNode == this.placeholder[0].parentNode // only rearrange items within the same container
+                    ) {
+
+                    $(itemElement).mouseenter();
+
+                    this.direction = intersection == 1 ? "down" : "up";
+
+                    if (this.options.tolerance == "pointer" || this._intersectsWithSides(item)) {
+                        $(itemElement).mouseleave();
+                        this._rearrange(event, item);
+                    } else {
+                        break;
+                    }
+
+                    // Clear emtpy ul's/ol's
+                    this._clearEmpty(itemElement);
+
+                    this._trigger("change", event, this._uiHash());
+                    break;
+                }
+            }
+
+            var parentItem = (this.placeholder[0].parentNode.parentNode &&
+                    $(this.placeholder[0].parentNode.parentNode).closest('.ui-sortable').length)
+                    ? $(this.placeholder[0].parentNode.parentNode)
+                    : null,
+                level = this._getLevel(this.placeholder),
+                childLevels = this._getChildLevels(this.helper);
+
+            // To find the previous sibling in the list, keep backtracking until we hit a valid list item.
+            var previousItem = this.placeholder[0].previousSibling ? $(this.placeholder[0].previousSibling) : null;
+            if (previousItem != null) {
+                while (previousItem[0].nodeName.toLowerCase() != 'li' || previousItem[0] == this.currentItem[0] || previousItem[0] == this.helper[0]) {
+                    if (previousItem[0].previousSibling) {
+                        previousItem = $(previousItem[0].previousSibling);
+                    } else {
+                        previousItem = null;
+                        break;
+                    }
+                }
+            }
+
+            // To find the next sibling in the list, keep stepping forward until we hit a valid list item.
+            var nextItem = this.placeholder[0].nextSibling ? $(this.placeholder[0].nextSibling) : null;
+            if (nextItem != null) {
+                while (nextItem[0].nodeName.toLowerCase() != 'li' || nextItem[0] == this.currentItem[0] || nextItem[0] == this.helper[0]) {
+                    if (nextItem[0].nextSibling) {
+                        nextItem = $(nextItem[0].nextSibling);
+                    } else {
+                        nextItem = null;
+                        break;
+                    }
+                }
+            }
+
+            var newList = document.createElement(o.listType);
+
+            this.beyondMaxLevels = 0;
+
+            // If the item is moved to the left, send it to its parent's level unless there are siblings below it.
+            if (parentItem != null && nextItem == null &&
+                (o.rtl && (this.positionAbs.left + this.helper.outerWidth() > parentItem.offset().left + parentItem.outerWidth()) ||
+                    !o.rtl && (this.positionAbs.left < parentItem.offset().left))) {
+                parentItem.after(this.placeholder[0]);
+                this._clearEmpty(parentItem[0]);
+                this._trigger("change", event, this._uiHash());
+            }
+            // If the item is below a sibling and is moved to the right, make it a child of that sibling.
+            else if (previousItem != null &&
+                (o.rtl && (this.positionAbs.left + this.helper.outerWidth() < previousItem.offset().left + previousItem.outerWidth() - o.tabSize) ||
+                    !o.rtl && (this.positionAbs.left > previousItem.offset().left + o.tabSize))) {
+                this._isAllowed(previousItem, level, level + childLevels + 1);
+                if (!previousItem.children(o.listType).length) {
+                    previousItem[0].appendChild(newList);
+                }
+                // If this item is being moved from the top, add it to the top of the list.
+                if (previousTopOffset && (previousTopOffset <= previousItem.offset().top)) {
+                    previousItem.children(o.listType).prepend(this.placeholder);
+                }
+                // Otherwise, add it to the bottom of the list.
+                else {
+                    previousItem.children(o.listType)[0].appendChild(this.placeholder[0]);
+                }
+                this._trigger("change", event, this._uiHash());
+            }
+            else {
+                this._isAllowed(parentItem, level, level + childLevels);
+            }
+
+            //Post events to containers
+            this._contactContainers(event);
+
+            //Interconnect with droppables
+            if ($.ui.ddmanager) $.ui.ddmanager.drag(this, event);
+
+            //Call callbacks
+            this._trigger('sort', event, this._uiHash());
+
+            this.lastPositionAbs = this.positionAbs;
+            return false;
+
+        },
+
+        _mouseStop: function (event, noPropagation) {
+
+            // If the item is in a position not allowed, send it back
+            if (this.beyondMaxLevels) {
+
+                this.placeholder.removeClass(this.options.errorClass);
+
+                if (this.domPosition.prev) {
+                    $(this.domPosition.prev).after(this.placeholder);
+                } else {
+                    $(this.domPosition.parent).prepend(this.placeholder);
+                }
+
+                this._trigger("revert", event, this._uiHash());
+
+            }
+
+            // Clean last empty ul/ol
+            for (var i = this.items.length - 1; i >= 0; i--) {
+                var item = this.items[i].item[0];
+                this._clearEmpty(item);
+            }
+
+            $.ui.sortable.prototype._mouseStop.apply(this, arguments);
+
+        },
+
+        serialize: function (options) {
+
+            var o = $.extend({}, this.options, options),
+                items = this._getItemsAsjQuery(o && o.connected),
+                str = [];
+
+            $(items).each(function () {
+                var res = ($(o.item || this).attr(o.attribute || 'id') || '')
+                        .match(o.expression || (/(.+)[-=_](.+)/)),
+                    pid = ($(o.item || this).parent(o.listType)
+                        .parent(o.items)
+                        .attr(o.attribute || 'id') || '')
+                        .match(o.expression || (/(.+)[-=_](.+)/));
+
+                if (res) {
+                    str.push(((o.key || res[1]) + '[' + (o.key && o.expression ? res[1] : res[2]) + ']')
+                        + '='
+                        + (pid ? (o.key && o.expression ? pid[1] : pid[2]) : o.rootID));
+                }
+            });
+
+            if (!str.length && o.key) {
+                str.push(o.key + '=');
+            }
+
+            return str.join('&');
+
+        },
+
+        toHierarchy: function (options) {
+
+            var o = $.extend({}, this.options, options),
+                sDepth = o.startDepthCount || 0,
+                ret = [];
+
+            $(this.element).children(o.items).each(function () {
+                var level = _recursiveItems(this);
+                ret.push(level);
+            });
+
+            return ret;
+
+            function _recursiveItems(item) {
+                var id = ($(item).attr(o.attribute || 'id') || '').match(o.expression || (/(.+)[-=_](.+)/));
+                if (id) {
+                    var currentItem = {"id": id[2]};
+                    if ($(item).children(o.listType).children(o.items).length > 0) {
+                        currentItem.children = [];
+                        $(item).children(o.listType).children(o.items).each(function () {
+                            var level = _recursiveItems(this);
+                            currentItem.children.push(level);
+                        });
+                    }
+                    return currentItem;
+                }
+            }
+        },
+
+        toArray: function (options) {
+
+            var o = $.extend({}, this.options, options),
+                sDepth = o.startDepthCount || 0,
+                ret = [],
+                left = 2;
+
+            ret.push({
+                "item_id": o.rootID,
+                "parent_id": 'none',
+                "depth": sDepth,
+                "left": '1',
+                "right": ($(o.items, this.element).length + 1) * 2
+            });
+
+            $(this.element).children(o.items).each(function () {
+                left = _recursiveArray(this, sDepth + 1, left);
+            });
+
+            ret = ret.sort(function (a, b) {
+                return (a.left - b.left);
+            });
+
+            return ret;
+
+            function _recursiveArray(item, depth, left) {
+
+                var right = left + 1,
+                    id,
+                    pid;
+
+                if ($(item).children(o.listType).children(o.items).length > 0) {
+                    depth++;
+                    $(item).children(o.listType).children(o.items).each(function () {
+                        right = _recursiveArray($(this), depth, right);
+                    });
+                    depth--;
+                }
+
+                id = ($(item).attr(o.attribute || 'id')).match(o.expression || (/(.+)[-=_](.+)/));
+
+                if (depth === sDepth + 1) {
+                    pid = o.rootID;
+                } else {
+                    var parentItem = ($(item).parent(o.listType)
+                        .parent(o.items)
+                        .attr(o.attribute || 'id'))
+                        .match(o.expression || (/(.+)[-=_](.+)/));
+                    pid = parentItem[2];
+                }
+
+                if (id) {
+                    ret.push({"item_id": id[2], "parent_id": pid, "depth": depth, "left": left, "right": right});
+                }
+
+                left = right + 1;
+                return left;
+            }
+
+        },
+
+        _clearEmpty: function (item) {
+
+            var emptyList = $(item).children(this.options.listType);
+            if (emptyList.length && !emptyList.children().length && !this.options.doNotClear) {
+                emptyList.remove();
+            }
+
+        },
+
+        _getLevel: function (item) {
+
+            var level = 1;
+
+            if (this.options.listType) {
+                var list = item.closest(this.options.listType);
+                while (list && list.length > 0 && !list.is('.ui-sortable')) {
+                    level++;
+                    list = list.parent().closest(this.options.listType);
+                }
+            }
+
+            return level;
+        },
+
+        _getChildLevels: function (parent, depth) {
+            var self = this,
+                o = this.options,
+                result = 0;
+            depth = depth || 0;
+
+            $(parent).children(o.listType).children(o.items).each(function (index, child) {
+                result = Math.max(self._getChildLevels(child, depth + 1), result);
+            });
+
+            return depth ? result + 1 : result;
+        },
+
+        _isAllowed: function (parentItem, level, levels) {
+            var o = this.options,
+                isRoot = $(this.domPosition.parent).hasClass('ui-sortable') ? true : false,
+                maxLevels = this.placeholder.closest('.ui-sortable').nestedSortable('option', 'maxLevels'); // this takes into account the maxLevels set to the recipient list
+
+            // Is the root protected?
+            // Are we trying to nest under a no-nest?
+            // Are we nesting too deep?
+            if (!o.isAllowed(this.currentItem, parentItem) ||
+                parentItem && parentItem.hasClass(o.disableNesting) ||
+                o.protectRoot && (parentItem == null && !isRoot || isRoot && level > 1)) {
+                this.placeholder.addClass(o.errorClass);
+                if (maxLevels < levels && maxLevels != 0) {
+                    this.beyondMaxLevels = levels - maxLevels;
+                } else {
+                    this.beyondMaxLevels = 1;
+                }
+            } else {
+                if (maxLevels < levels && maxLevels != 0) {
+                    this.placeholder.addClass(o.errorClass);
+                    this.beyondMaxLevels = levels - maxLevels;
+                } else {
+                    this.placeholder.removeClass(o.errorClass);
+                    this.beyondMaxLevels = 0;
+                }
+            }
+        }
+
+    }));
+
+    $.mjs.nestedSortable.prototype.options = $.extend({}, $.ui.sortable.prototype.options, $.mjs.nestedSortable.prototype.options);
+})(jQuery);
+
+define('ng-editable-tree', [], function () {
+    'use strict';
+
+    /**
+     * @url http://jsfiddle.net/EJGHX/
+     */
+    angular.module('ngEditableTree', ['ngResource'])
+        .directive('treeView', function () {
+
+            return {
+                restrict: 'A',
+                transclude: 'element',
+                priority: 1000,
+                terminal: true,
+                compile: function (tElement, tAttrs, transclude) {
+
+                    var repeatExpr, childExpr, rootExpr, childrenExpr, branchExpr;
+
+                    repeatExpr = tAttrs.treeView.match(/^(.*) in ((?:.*\.)?(.*)) at (.*)$/);
+                    childExpr = repeatExpr[1];
+                    rootExpr = repeatExpr[2];
+                    childrenExpr = repeatExpr[3];
+                    branchExpr = repeatExpr[4];
+
+                    return function link(scope, element, attrs) {
+
+                        var rootElement = element[0].parentNode,
+                            cache = [];
+
+                        // Reverse lookup object to avoid re-rendering elements
+                        function lookup(child) {
+                            var i = cache.length;
+                            while (i--) {
+                                if (cache[i].scope[childExpr] === child) {
+                                    return cache.splice(i, 1)[0];
+                                }
+                            }
+                        }
+
+                        scope.$watch(rootExpr, function (root) {
+
+                            var currentCache = [];
+
+                            // Recurse the data structure
+                            (function walk(children, parentNode, parentScope, depth) {
+
+                                var i = 0,
+                                    n = (children) ? children.length : 0,
+                                    last = n - 1,
+                                    cursor,
+                                    child,
+                                    cached,
+                                    childScope,
+                                    grandchildren;
+
+                                // Iterate the children at the current level
+                                for (; i < n; ++i) {
+
+                                    // We will compare the cached element to the element in
+                                    // at the destination index. If it does not match, then
+                                    // the cached element is being moved into this position.
+                                    cursor = parentNode.childNodes[i];
+
+                                    child = children[i];
+
+                                    // See if this child has been previously rendered
+                                    // using a reverse lookup by object reference
+                                    cached = lookup(child);
+
+                                    // If the parentScope no longer matches, we've moved.
+                                    // We'll have to transclude again so that scopes
+                                    // and controllers are properly inherited
+                                    if (cached && cached.parentScope !== parentScope) {
+                                        cache.push(cached);
+                                        cached = null;
+                                    }
+
+                                    // If it has not, render a new element and prepare its scope
+                                    // We also cache a reference to its branch node which will
+                                    // be used as the parentNode in the next level of recursion
+                                    if (!cached) {
+                                        transclude(parentScope.$new(), function (clone, childScope) {
+
+                                            childScope[childExpr] = child;
+
+                                            cached = {
+                                                scope: childScope,
+                                                parentScope: parentScope,
+                                                element: clone[0],
+                                                branch: clone.find(branchExpr)[0]
+                                            };
+
+                                            // This had to happen during transclusion so inherited
+                                            // controllers, among other things, work properly
+                                            parentNode.insertBefore(cached.element, cursor);
+
+                                        });
+                                    } else if (cached.element !== cursor) {
+                                        parentNode.insertBefore(cached.element, cursor);
+                                    }
+
+                                    // Lets's set some scope values
+                                    childScope = cached.scope;
+
+                                    // Store the current depth on the scope in case you want
+                                    // to use it (for good or evil, no judgment).
+                                    childScope.$depth = depth;
+
+                                    // Emulate some ng-repeat values
+                                    childScope.$index = i;
+                                    childScope.$first = (i === 0);
+                                    childScope.$last = (i === last);
+                                    childScope.$middle = !(childScope.$first || childScope.$last);
+
+                                    // Push the object onto the new cache which will replace
+                                    // the old cache at the end of the walk.
+                                    currentCache.push(cached);
+
+                                    // If the child has children of its own, recurse 'em.
+                                    grandchildren = child[childrenExpr];
+                                    if (grandchildren && grandchildren.length) {
+                                        walk(grandchildren, cached.branch, childScope, depth + 1);
+                                    }
+                                }
+                            })(root, rootElement, scope, 0);
+
+                            // Cleanup objects which have been removed.
+                            // Remove DOM elements and destroy scopes to prevent memory leaks.
+                            var i = cache.length;
+
+                            while (i--) {
+                                var cached = cache[i];
+                                if (cached.scope) {
+                                    cached.scope.$destroy();
+                                }
+                                if (cached.element) {
+                                    cached.element.parentNode.removeChild(cached.element);
+                                }
+                            }
+
+                            // Replace previous cache.
+                            cache = currentCache;
+
+                        }, true);
+                    };
+                }
+            };
+        })
+        .directive('treeViewSortable', ['$parse', function ($parse) {
+            var eventTypes = 'Create Start Sort Change BeforeStop Update Receive Remove Over Out Activate Deactivate'.split(' ');
+
+            return {
+                restrict: 'A',
+                link: function (scope, element, attrs) {
+                    var options = {
+                        listType: 'ol',
+                        items: 'li',
+                        doNotClear: true,
+                        handle: '.title-item-menu',
+                        placeholder: 'nav-placeholder',
+                        forcePlaceholderSize: true,
+                        maxLevels: 5,
+                        toleranceElement: '> div'
+                    };
+                    var nodeOptions = attrs.treeViewSortableOptions ? $parse(attrs.treeViewSortableOptions)() : {};
+                    options = angular.extend(options, nodeOptions);
+                    var tree = $parse(attrs.treeViewSortable)(scope);
+
+                    scope.$watch(attrs.treeViewSortable, function (value) {
+                        tree = value;
+                    });
+                    // open collapsed element
+                    options.sort = function (event, ui) {
+                        var parents = $(ui.placeholder).parents('li.ng-scope', '.nav-nested');
+                        $.each(parents, function (index, element) {
+                            var el = angular.element(element),
+                                scope = el.scope(),
+                                repeatExpr = $(element).attr('tree-view').match(/^(.*) in ((?:.*\.)?(.*)) at (.*)$/);
+
+                            scope.$apply(function () {
+                                scope[repeatExpr[1]].$expanded = true;
+                            });
+                        });
+                    };
+
+                    // sort childrens
+                    options.stop = function (event, ui) {
+                        var root = event.target,
+                            item = ui.item,
+                            parent = item.parent(),
+                            target = (parent[0] === root) ? tree : parent.scope().child,
+                            child = item.scope().child,
+                            index = item.index();
+                        target.children || (target.children = []);
+
+                        function walk(target, child) {
+                            var children = target.children, i;
+                            if (children) {
+                                i = children.length;
+                                while (i--) {
+                                    if (children[i] === child) {
+                                        return children.splice(i, 1);
+                                    } else {
+                                        walk(children[i], child);
+                                    }
+                                }
+                            }
+                        }
+                        walk(tree, child);
+
+                        target.children.splice(index, 0, child);
+
+                        var callback = $parse(attrs.treeViewMove);
+                        scope.$apply(function () {
+                            callback(scope, {
+                                $item: child,
+                                $before: (index) ? target.children[index - 1] : target,
+                                $index: index
+                            });
+                        });
+                    };
+
+                    angular.forEach(eventTypes, function (eventType) {
+
+                        var attr = attrs['treeViewSortable' + eventType], callback;
+
+                        if (attr) {
+                            callback = $parse(attr);
+                            options[eventType.charAt(0).toLowerCase() + eventType.substr(1)] = function (event, ui) {
+                                scope.$apply(function () {
+
+                                    callback(scope, {
+                                        $event: event,
+                                        $ui: ui
+                                    });
+                                });
+                            };
+                        }
+
+                    });
+
+                    element.nestedSortable(options);
+                }
+            };
+        }])
+        .factory('ngNestedResource', ['$resource', '$q', '$rootScope', function ($resource, $q, $rootScope) {
+            function ResourceFactory(url, paramDefaults, actions, options) {
+                var defaultActions = {
+                    update: { method: 'POST' },
+                    create: { method: 'PUT', params: { 'insert': true } },
+                    move: { method: 'PUT', params: { 'move': true } }
+                };
+                actions = angular.extend(defaultActions, actions);
+                options = angular.extend({
+                    'nestedField': 'children'
+                }, options);
+                var resource = $resource(url, paramDefaults, actions);
+
+                function walk(items, parent) {
+                    parent = parent || null;
+                    for (var i = 0, max = items.length; i < max; i++) {
+                        if (!items[i][options.nestedField]) {
+                            items[i][options.nestedField] = [];
+                        }
+                        if (!(items[i] instanceof resource)) {
+                            items[i] = new resource(items[i]);
+                        }
+                        if (items[i][options.nestedField].length) {
+                            walk(items[i][options.nestedField], items[i]);
+                        }
+                    }
+                }
+                resource.prototype.$insertItem = function (cb) {
+                    cb = cb || angular.noop;
+                    var currentItem = this,
+                        clone = angular.copy(this); // clone object because angular resource update original data
+                    return clone.$create({ 'id': currentItem.id }, function (item) {
+                        item[options.nestedField] = [];
+                        currentItem.$expanded = true;
+                        currentItem[options.nestedField].unshift(item);
+                        if (!$rootScope.$$phase) {
+                            $rootScope.$apply();
+                        }
+                        cb(item);
+                    });
+                };
+                resource.prototype.$moveItem = function (before, position, cb) {
+                    cb = cb || angular.noop;
+                    var clone = new resource(this);
+                    return clone.$move({ 'id': this.id, 'insert': position == 0, 'before': before.id }, function (item) {
+                        cb(item);
+                    });
+                };
+                resource.getTree = function (data, cb) {
+                    cb = cb || angular.noop;
+                    if (typeof data == 'function') {
+                        cb = data;
+                        data = {};
+                    }
+                    var def = $q.defer();
+                    resource.get(data, function (result) {
+                        walk(result[options.nestedField]);
+                        def.resolve(result);
+                        cb(result);
+                    });
+                    return def.promise;
+                };
+
+                var findWalk = function (data, iterator, parents) {
+                    parents = parents || [];
+                    if (angular.isUndefined(data)) {
+                        return null;
+                    }
+                    if (iterator.call(this, data)) {
+                        return data;
+                    }
+                    var res = null;
+                    for (var i = 0, max = data[options.nestedField].length; i < max; i++) {
+                        res = findWalk(data[options.nestedField][i], iterator, parents);
+                        if (res) {
+                            parents.push(data[options.nestedField][i]);
+                            break;
+                        }
+                    }
+                    return res;
+                };
+                resource.find = function (data, iterator, parents) {
+                    return findWalk(data, iterator, parents);
+                };
+                return resource;
+            }
+
+            return ResourceFactory;
+        }]);
+
+
+});

@@ -26,14 +26,14 @@ module.exports = (grunt) ->
             # concat js files before minification
             js:
                 src: ['src/scripts/jquery.mjs.nestedSortable.js','src/scripts/ng-editable-tree.js']
-                dest: 'ng-editable-tree.js'
+                dest: 'ng-editable-tree.min.js'
                 options:
                   sourceMap: (fileName) ->
                     fileName.replace /\.js$/, '.map'
         concat:
             # concat js files before minification
             js:
-                src: ['.temp/scripts/jquery.mjs.nestedSortable.js','.temp/scripts/ng-editable-tree.js']
+                src: ['src/scripts/jquery.mjs.nestedSortable.js','src/scripts/ng-editable-tree.js']
                 dest: 'ng-editable-tree.js'
 
         less:
@@ -64,6 +64,7 @@ module.exports = (grunt) ->
 
     grunt.registerTask 'default', [
         'clean'
+        'concat'
         'uglify'
         'less'
         'cssmin'

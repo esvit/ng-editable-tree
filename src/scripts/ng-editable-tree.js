@@ -1,6 +1,5 @@
-'use strict';
-
 define('ng-editable-tree', [], function () {
+    'use strict';
 
     /**
      * @url http://jsfiddle.net/EJGHX/
@@ -168,10 +167,10 @@ define('ng-editable-tree', [], function () {
                     var tree = $parse(attrs.treeViewSortable)(scope);
 
                     scope.$watch(attrs.treeViewSortable, function (value) {
-                        tree = value
+                        tree = value;
                     });
                     // open collapsed element
-                    options['sort'] = function (event, ui) {
+                    options.sort = function (event, ui) {
                         var parents = $(ui.placeholder).parents('li.ng-scope', '.nav-nested');
                         $.each(parents, function (index, element) {
                             var el = angular.element(element),
@@ -185,7 +184,7 @@ define('ng-editable-tree', [], function () {
                     };
 
                     // sort childrens
-                    options['stop'] = function (event, ui) {
+                    options.stop = function (event, ui) {
                         var root = event.target,
                             item = ui.item,
                             parent = item.parent(),
@@ -206,7 +205,7 @@ define('ng-editable-tree', [], function () {
                                     }
                                 }
                             }
-                        };
+                        }
                         walk(tree, child);
 
                         target.children.splice(index, 0, child);
@@ -245,37 +244,40 @@ define('ng-editable-tree', [], function () {
             };
         }])
         .factory('ngNestedResource', ['$resource', '$q', '$rootScope', function ($resource, $q, $rootScope) {
-            function ResourceFactory(url, paramDefaults, actions) {
+            function ResourceFactory(url, paramDefaults, actions, options) {
                 var defaultActions = {
                     update: { method: 'POST' },
                     create: { method: 'PUT', params: { 'insert': true } },
                     move: { method: 'PUT', params: { 'move': true } }
                 };
                 actions = angular.extend(defaultActions, actions);
+                options = angular.extend({
+                    'nestedField': 'children'
+                }, options);
                 var resource = $resource(url, paramDefaults, actions);
 
                 function walk(items, parent) {
                     parent = parent || null;
                     for (var i = 0, max = items.length; i < max; i++) {
-                        if (!items[i].children) {
-                            items[i].children = [];
+                        if (!items[i][options.nestedField]) {
+                            items[i][options.nestedField] = [];
                         }
                         if (!(items[i] instanceof resource)) {
                             items[i] = new resource(items[i]);
                         }
-                        if (items[i].children.length) {
-                            walk(items[i].children, items[i]);
+                        if (items[i][options.nestedField].length) {
+                            walk(items[i][options.nestedField], items[i]);
                         }
                     }
-                };
+                }
                 resource.prototype.$insertItem = function (cb) {
                     cb = cb || angular.noop;
                     var currentItem = this,
                         clone = angular.copy(this); // clone object because angular resource update original data
                     return clone.$create({ 'id': currentItem.id }, function (item) {
-                        item.children = [];
+                        item[options.nestedField] = [];
                         currentItem.$expanded = true;
-                        currentItem.children.unshift(item);
+                        currentItem[options.nestedField].unshift(item);
                         if (!$rootScope.$$phase) {
                             $rootScope.$apply();
                         }
@@ -297,7 +299,7 @@ define('ng-editable-tree', [], function () {
                     }
                     var def = $q.defer();
                     resource.get(data, function (result) {
-                        walk(result.children);
+                        walk(result[options.nestedField]);
                         def.resolve(result);
                         cb(result);
                     });
@@ -313,15 +315,15 @@ define('ng-editable-tree', [], function () {
                         return data;
                     }
                     var res = null;
-                    for (var i = 0, max = data.children.length; i < max; i++) {
-                        res = findWalk(data.children[i], iterator, parents);
+                    for (var i = 0, max = data[options.nestedField].length; i < max; i++) {
+                        res = findWalk(data[options.nestedField][i], iterator, parents);
                         if (res) {
-                            parents.push(data.children[i]);
+                            parents.push(data[options.nestedField][i]);
                             break;
                         }
                     }
                     return res;
-                }
+                };
                 resource.find = function (data, iterator, parents) {
                     return findWalk(data, iterator, parents);
                 };

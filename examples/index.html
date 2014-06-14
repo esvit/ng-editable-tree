@@ -1,133 +1,164 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]> <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]> <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <meta name="viewport" content="width=device-width">
+<!--[if lt IE 7]>
+<html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>
+<html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>
+<html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width">
 
-        <!--link rel="stylesheet" href="nav-nested.css">
-        <link rel="stylesheet" href="nav-nested-editable.css"-->
-        <link rel="stylesheet" href="css/bootstrap.css" />
-        <link rel="stylesheet" href="../ng-editable-tree.css" />
+    <!--link rel="stylesheet" href="nav-nested.css">
+    <link rel="stylesheet" href="nav-nested-editable.css"-->
+    <link rel="stylesheet" href="css/bootstrap.css"/>
+    <link rel="stylesheet" href="../ng-editable-tree.css"/>
 
-        <script src="js/jquery-1.9.1.min.js"></script>
-        <script src="js/angular.min.js"></script>
-        <script src="js/jquery-ui.min.js"></script>
-        <script src="js/angular-resource.min.js"></script>
-        <script src="../ng-editable-tree.js"></script>
-    </head>
-    <body ng-app="app" ng-controller="IndexCtrl">
+    <script src="js/require.js"></script>
+</head>
+<body>
 
-        <div class="row">
-            <div class="col-span-6">
-            
-            
-                <ol class="nav nav-nested">
-                    <li tree-view="child in tree.$children at ol" ng-class="{expanded:child.$expanded, 'active':child.id == activeNode.id}">
-                        <div>
-                            <a href="javascript:;" ng-click="child.$expanded = !child.$expanded" ng-switch on="child.$expanded">
-                                <span ng-show="child.$children.length" ng-switch-when="true">&#x25BC;</span>
-                                <span ng-show="child.$children.length" ng-switch-default>&#x25B6;</span>
-                            </a>
+<div class="row" ng-controller="IndexCtrl">
+    <div class="col-span-6">
 
-                            <a href="javascript:;" ng-click="activete(child)">
+
+        <ol class="nav nav-nested">
+            <li tree-view="child in tree.$children at ol"
+                ng-class="{expanded:child.$expanded, 'active':child.id == activeNode.id}">
+                <div>
+                    <a href="javascript:;" ng-click="child.$expanded = !child.$expanded" ng-switch on="child.$expanded">
+                        <span ng-show="child.$children.length" ng-switch-when="true">&#x25BC;</span>
+                        <span ng-show="child.$children.length" ng-switch-default>&#x25B6;</span>
+                    </a>
+
+                    <a href="javascript:;" ng-click="activete(child)">
+                        {{child.title}}
+                    </a>
+                </div>
+                <ol></ol>
+            </li>
+        </ol>
+
+    </div>
+    <div class="col-span-6">
+
+
+        <ol tree-view-sortable="tree" tree-view-move="move($item, $before, $index)" class="nav nav-nested editable">
+            <li tree-view="child in tree.$children at ol" ng-class="{expanded:child.$expanded}">
+                <div>
+                    <a href="javascript:;" ng-click="child.$expanded = !child.$expanded" ng-switch on="child.$expanded">
+                        <span ng-show="child.$children.length" ng-switch-when="true">&#x25BC;</span>
+                        <span ng-show="child.$children.length" ng-switch-default>&#x25B6;</span>
+                    </a>
+
+                    <div class="item-content" ng-class="{'expanded':child.$settings}">
+                        <div class="btn-group btn-group-justified">
+                            <a href="javascript:;" class="btn title-item-menu"
+                               ng-class="{'btn-primary':child.is_publish}">
                                 {{child.title}}
                             </a>
+                            <!--a class="btn" ng-click="child.is_publish = !child.is_publish; updateItem(child)" ng-class="{'btn-primary active':child.is_publish}">
+                                <span class="glyphicon glyphicon-eye-open"></span>
+                            </a-->
+                            <a class="btn" ng-click="addChild(child)" ng-class="{'btn-primary':child.is_publish}">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </a>
+                            <a class="btn" ng-class="{'btn-primary':child.is_publish}" href="javascript:;">
+                                <span class="glyphicon glyphicon-trash"></span>
+                            </a>
+                            <a class="btn" ng-class="{'btn-primary':child.is_publish, 'active': child.$settings}"
+                               ng-click="showCategorySettings(child)"><span
+                                    class="glyphicon glyphicon-cog"></span>
+                            </a>
                         </div>
-                        <ol></ol>
-                    </li>
-                </ol>
-            
-            </div>
-            <div class="col-span-6">
-            
-            
-            <ol tree-view-sortable="tree" tree-view-move="move($item, $before, $index)" class="nav nav-nested editable">
-                <li tree-view="child in tree.$children at ol" ng-class="{expanded:child.$expanded}">
-                    <div>
-                        <a href="javascript:;" ng-click="child.$expanded = !child.$expanded" ng-switch on="child.$expanded">
-                            <span ng-show="child.$children.length" ng-switch-when="true">&#x25BC;</span>
-                            <span ng-show="child.$children.length" ng-switch-default>&#x25B6;</span>
-                        </a>
-
-                        <div class="item-content" ng-class="{'expanded':child.$settings}">
-                            <div class="btn-group btn-group-justified">
-                                <a href="javascript:;" class="btn title-item-menu" ng-class="{'btn-primary':child.is_publish}">
-                                    {{child.title}}
-                                </a>
-                                <!--a class="btn" ng-click="child.is_publish = !child.is_publish; updateItem(child)" ng-class="{'btn-primary active':child.is_publish}">
-                                    <span class="glyphicon glyphicon-eye-open"></span>
-                                </a-->
-                                <a class="btn" ng-click="addChild(child)" ng-class="{'btn-primary':child.is_publish}">
-                                    <span class="glyphicon glyphicon-plus"></span>
-                                </a>
-                                <a class="btn" ng-class="{'btn-primary':child.is_publish}" href="javascript:;">
-                                    <span class="glyphicon glyphicon-trash"></span>
-                                </a>
-                                <a class="btn" ng-class="{'btn-primary':child.is_publish, 'active': child.$settings}"
-                                   ng-click="showCategorySettings(child)"><span
-                                        class="glyphicon glyphicon-cog"></span>
-                                </a>
-                            </div>
-                            <div class="details" ng-show="child.$settings">
-                                Settings
-                            </div>
+                        <div class="details" ng-show="child.$settings">
+                            Settings
                         </div>
                     </div>
-                    <ol></ol>
-                </li>
-            </ol>
-            
-            </div>
-        </div>
-        
-        <script>
-        var app = angular.module('app', ['ngEditableTree'])
-        .factory('CategoryService', function(ngNestedResource) {
-            var CategoryService = ngNestedResource('/rest.php/pages/categories/');
-            return CategoryService;
-        })
+                </div>
+                <ol></ol>
+            </li>
+        </ol>
 
-        function IndexCtrl($scope, $http, $q, $timeout, CategoryService) {
+    </div>
+</div>
+
+<script>
+    requirejs.config({
+        baseUrl: '/src',
+        paths: {
+            'jquery': '../bower_components/jquery/jquery',
+            'jquery-ui': '../bower_components/jquery-ui/ui',
+            'angular': '../bower_components/angular/angular',
+            'angular-resource': '../bower_components/angular-resource/angular-resource',
+            'ng-editable-tree': '../src/scripts/ng-editable-tree',
+            'nestedSortable': '../src/scripts/jquery.mjs.nestedSortable'
+        },
+        shim: {
+            'angular': { deps: ['jquery'] },
+            'angular-resource': { deps: ['angular'] },
+            'nestedSortable': { deps: ['jquery', 'jquery-ui/jquery.ui.draggable', 'jquery-ui/jquery.ui.droppable', 'jquery-ui/jquery.ui.sortable'] },
+            'ng-editable-tree': { deps: ['angular', 'nestedSortable'] },
+
+            // jquery ui for sortable
+            'jquery-ui/jquery.ui.core': { deps: ['jquery'] },
+            'jquery-ui/jquery.ui.widget': { deps: ['jquery-ui/jquery.ui.core'] },
+            'jquery-ui/jquery.ui.mouse': { deps: ['jquery-ui/jquery.ui.widget'] },
+            'jquery-ui/jquery.ui.draggable': { deps: ['jquery-ui/jquery.ui.mouse'] },
+            'jquery-ui/jquery.ui.droppable': { deps: ['jquery-ui/jquery.ui.mouse'] },
+            'jquery-ui/jquery.ui.sortable': { deps: ['jquery-ui/jquery.ui.mouse'] }
+        },
+        urlArgs: 'v=1.1'
+    });
+    require(['angular-resource', 'ng-editable-tree'], function () {
+        var app = angular.module('app', ['ngEditableTree'])
+                .factory('CategoryService', function (ngNestedResource) {
+                    var CategoryService = ngNestedResource('/rest.php/pages/categories/');
+                    return CategoryService;
+                });
+
+        app.controller('IndexCtrl', function($scope, $http, $q, $timeout, CategoryService) {
             $scope.tree = {
-                $children: [{
-                    id: 1,
-                    title: 'Root node',
-                    $expanded: true,
-                    $children: [
-                        { id: 2, title: 'Node1' },
-                        { id: 3, title: 'Node2' },
-                        {
-                            id: 4,
-                            title: 'Node3',
-                            $children: [
-                                { id:5, title: 'Node1' }
-                            ]
-                        }
-                    ]
-                }]
+                $children: [
+                    {
+                        id: 1,
+                        title: 'Root node',
+                        $expanded: true,
+                        $children: [
+                            { id: 2, title: 'Node1' },
+                            { id: 3, title: 'Node2' },
+                            {
+                                id: 4,
+                                title: 'Node3',
+                                $children: [
+                                    { id: 5, title: 'Node1' }
+                                ]
+                            }
+                        ]
+                    }
+                ]
             };
-            $scope.activete = function(node) {
+            $scope.activete = function (node) {
                 $scope.activeNode = node;
             }
 
             /**
-            * Create new menu elements
-            */
+             * Create new menu elements
+             */
             $scope.addChild = function (child) {
                 var category = new CategoryService(child);
 
-                category.$insertItem(function(item) {
+                category.$insertItem(function (item) {
                     item.focus = true;
                     item.showsettings = true;
                     item.children = [];
                 });
             };
 
-            $scope.move = function(item, before, index) {
+            $scope.move = function (item, before, index) {
                 var category = new CategoryService(item);
                 category.$moveItem(before, index);
             }
@@ -135,7 +166,7 @@
             $scope.remove = function (child) {
                 function walk(target) {
                     var children = target.children,
-                    i;
+                            i;
                     if (children) {
                         i = children.length;
                         while (i--) {
@@ -147,13 +178,17 @@
                         }
                     }
                 }
-                $scope.$apply(function() {
+
+                $scope.$apply(function () {
                     walk($scope.menu);
                 });
             }
-        }
-        </script>
+        });
 
-    
-    </body>
+        angular.bootstrap(document.documentElement, [app.name]);
+    });
+</script>
+
+
+</body>
 </html>
